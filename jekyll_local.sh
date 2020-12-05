@@ -1,2 +1,0 @@
-cd homepage
-jekyll serve
