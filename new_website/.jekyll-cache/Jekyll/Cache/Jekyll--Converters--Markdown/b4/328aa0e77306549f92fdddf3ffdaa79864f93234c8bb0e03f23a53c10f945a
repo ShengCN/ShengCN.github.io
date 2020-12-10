@@ -1,0 +1,35 @@
+I""<h1 id="spherical-harmonics-and-soft-shadows">Spherical Harmonics and Soft Shadows</h1>
+
+<h2 id="what-is-spherical-harmonicssh">What is Spherical Harmonics(SH)</h2>
+<p>Spherical harmonics(SH) are functions defined on the (unit) sphere surface:</p>
+
+\[f(\theta, \phi): R^2 \rightarrow R\]
+
+<p>To be specific:</p>
+
+\[y_l^m(\theta, \phi) = 
+\begin{cases}
+      \sqrt{2}K_l^m cos(m\phi) P_l^m(cos\theta), m &gt; 0\\
+      \sqrt{2}K_l^m sin(-m\phi) P_l^{-m}(cos\theta), m &lt; 0\\
+      K_l^0 P_l^0 cos(\theta), m = 0\\
+\end{cases}\]
+
+\[K_l^m = \sqrt{\frac{(2l+1)}{4\pi} \frac{(l-|m|)!}{(l+|m|)!}}\]
+
+\[l \in \mathbb{R}^+, -l \leq m \leq l\]
+
+<h2 id="soft-shadows">Soft Shadows</h2>
+<p> 
+ 
+ </p>
+
+<h2 id="experiments">Experiments</h2>
+<p> 
+ 
+ </p>
+
+<h2 id="conclusion">Conclusion</h2>
+<p> 
+ 
+ </p>
+:ET
