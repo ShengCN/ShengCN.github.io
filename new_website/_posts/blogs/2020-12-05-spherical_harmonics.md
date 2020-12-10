@@ -5,7 +5,7 @@ date:   2020-12-05 00:20:59 +00:00
 image: /images/CGT620.png
 categories: blog
 author: "Yichen Sheng"
-permalink: /:categories/:year/:month/:day/:title
+permalink: /:categories/:year/:month/:day/:title.html
 ---
 # Spherical Harmonics and Soft Shadows
 
