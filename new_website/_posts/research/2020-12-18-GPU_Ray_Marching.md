@@ -6,5 +6,5 @@ image: /images/Ray_marching/profile_.jpg
 categories: Purdue
 author: "Yichen Sheng"
 --- 
-[> Video](https://youtu.be/VLBOKR2WziI)
+[> Video](https://youtu.be/3K4kuJRChb0)
 [> Blog(todo)]({% post_url blogs/2020-12-18-GPU_Ray_Marching %})
