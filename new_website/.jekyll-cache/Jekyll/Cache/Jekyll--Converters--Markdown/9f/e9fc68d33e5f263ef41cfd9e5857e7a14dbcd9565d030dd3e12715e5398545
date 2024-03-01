@@ -1,7 +1,0 @@
-I"c<p>I made this video: https://youtu.be/VLBOKR2WziI in 2018. It is rendered using ray-marching, fBm noise and some other tricks. The noise function is coming from iq. Only drawed a quad in the screen. All the meshes and shadings are defined in the fragment shader.</p>
-
-<h2 id="todo">TODO</h2>
-<ul>
-  <li>Technical details of the implementation</li>
-</ul>
-:ET
