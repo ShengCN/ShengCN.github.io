@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <title>Diffusion Meets Flow Matching: Two Sides of the Same Coin | Yichen Sheng</title>
+  <meta name="description" content="An exploration of the equivalence between diffusion models and Gaussian flow matching frameworks in generative modeling.">
+  <meta name="author" content="Yichen Sheng">
+  
+  <!-- Open Graph / Social -->
+  <meta property="og:title" content="Diffusion Meets Flow Matching: Two Sides of the Same Coin">
+  <meta property="og:description" content="An exploration of the equivalence between diffusion models and Gaussian flow matching frameworks in generative modeling.">
+  <meta property="og:type" content="article">
+  
+  <link rel="icon" href="/images/purdue.png">
+  <link rel="canonical" href="/blog/2024/12/29/diffusion-flow-matching.html">
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500&family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- KaTeX for math -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false},
+        {left: '\\[', right: '\\]', display: true},
+        {left: '\\(', right: '\\)', display: false}
+      ],
+      throwOnError: false
+    });"></script>
+  
+  <!-- Prism.js for code highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cuda.min.js"></script>
+  
+  <!-- Distill-style CSS -->
+  <link rel="stylesheet" type="text/css" href="/css/distill.css">
+</head>
+
+<body>
+  <div class="distill-container">
+    <!-- Navigation -->
+    <nav class="distill-nav">
+      <a href="/" class="nav-home">← Back to Home</a>
+    </nav>
+    
+    <!-- Article Header -->
+    <header class="distill-header">
+      <h1 class="distill-title">Diffusion Meets Flow Matching: Two Sides of the Same Coin</h1>
+      
+      
+      <p class="distill-description">An exploration of the equivalence between diffusion models and Gaussian flow matching frameworks in generative modeling.</p>
+      
+      
+      <div class="distill-meta">
+        <div class="distill-authors">
+          
+            <span class="author">Yichen Sheng</span>
+          
+        </div>
+        
+        <div class="distill-date">
+          <time datetime="2024-12-29T00:00:00-08:00">
+            December 29, 2024
+          </time>
+        </div>
+      </div>
+      
+      
+    </header>
+    
+    <!-- Table of Contents (optional) -->
+    
+    <nav class="distill-toc">
+      <h3>Contents</h3>
+      <div id="toc-content"></div>
+    </nav>
+    
+    
+    <!-- Main Content -->
+    <article class="distill-article">
+      <h2 id="overview">Overview</h2>
+
+<p>Flow matching and diffusion models are two popular frameworks in generative modeling. Despite seeming similar, there is some confusion in the community about their exact connection. In this post, we aim to clear up this confusion and show that <strong>diffusion models and Gaussian flow matching are the same</strong>.</p>
+
+<p>This is great news—it means you can use the two frameworks interchangeably and mix techniques developed from both.</p>
+
+<h2 id="diffusion-models">Diffusion Models</h2>
+
+<p>A diffusion process gradually destroys an observed datapoint $\mathbf{x}$ (such as an image) over time $t$, by mixing the data with Gaussian noise. The noisy data at time $t$ is given by a forward process:</p>
+
+\[\mathbf{z}_t = \alpha_t \mathbf{x} + \sigma_t \boldsymbol{\epsilon}, \quad \text{where} \quad \boldsymbol{\epsilon} \sim \mathcal{N}(0, \mathbf{I})\]
+
+<p>Here $\alpha_t$ and $\sigma_t$ define the <strong>noise schedule</strong>. A noise schedule is called variance-preserving if $\alpha_t^2 + \sigma_t^2 = 1$.</p>
+
+<h3 id="the-reverse-process">The Reverse Process</h3>
+
+<p>To generate new samples, we can “reverse” the forward process:</p>
+
+<ol>
+  <li>Initialize the sample $\mathbf{z}_1$ from a standard Gaussian</li>
+  <li>Given the sample $\mathbf{z}_t$ at time step $t$, predict what the clean sample might look like with a neural network (denoiser model) $\hat{\mathbf{x}} = \hat{\mathbf{x}}(\mathbf{z}_t; t)$</li>
+  <li>Project it back to a lower noise level $s$ with the same forward transformation</li>
+</ol>
+
+<p>The DDIM update is given by:</p>
+
+\[\mathbf{z}_{s} = \alpha_{s} \hat{\mathbf{x}} + \sigma_{s} \hat{\boldsymbol{\epsilon}}\]
+
+<p>where $\hat{\boldsymbol{\epsilon}} = (\mathbf{z}_t - \alpha_t \hat{\mathbf{x}}) / \sigma_t$.</p>
+
+<h2 id="flow-matching">Flow Matching</h2>
+
+<p>In flow matching, we view the forward process as a linear interpolation between the data $\mathbf{x}$ and a noise term $\boldsymbol{\epsilon}$:</p>
+
+\[\mathbf{z}_t = (1-t) \mathbf{x} + t \boldsymbol{\epsilon}\]
+
+<p>This corresponds to the diffusion forward process if the noise is Gaussian and we use the schedule $\alpha_t = 1-t, \sigma_t = t$.</p>
+
+<p>Using simple algebra, we can derive that $\mathbf{z}<em>t = \mathbf{z}</em>{s} + \mathbf{u} \cdot (t - s)$ for $s &lt; t$, where $\mathbf{u} = \boldsymbol{\epsilon} - \mathbf{x}$ is the “velocity” or “vector field”.</p>
+
+<h2 id="the-equivalence">The Equivalence</h2>
+
+<p>Both frameworks share the same essence:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Aspect</th>
+      <th>Diffusion</th>
+      <th>Flow Matching</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Forward process</td>
+      <td>Same (with appropriate schedule)</td>
+      <td>Same</td>
+    </tr>
+    <tr>
+      <td>Sampling</td>
+      <td>Iterative denoising</td>
+      <td>Iterative flow following</td>
+    </tr>
+    <tr>
+      <td>Network output</td>
+      <td>$\hat{\mathbf{x}}$ or $\hat{\boldsymbol{\epsilon}}$</td>
+      <td>$\hat{\mathbf{u}}$ (velocity)</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>Key Insight</strong>: The DDIM update can be expressed as a flow matching update with appropriate reparametrization. This means techniques from one framework can be applied to the other!</p>
+</blockquote>
+
+<h2 id="code-example">Code Example</h2>
+
+<p>Here’s a simple example showing the equivalence in PyTorch:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="n">torch</span>
+
+<span class="k">def</span> <span class="nf">diffusion_forward</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">alpha_t</span><span class="p">,</span> <span class="n">sigma_t</span><span class="p">):</span>
+    <span class="sh">"""</span><span class="s">Diffusion forward process</span><span class="sh">"""</span>
+    <span class="n">eps</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">randn_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">z_t</span> <span class="o">=</span> <span class="n">alpha_t</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">sigma_t</span> <span class="o">*</span> <span class="n">eps</span>
+    <span class="k">return</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">eps</span>
+
+<span class="k">def</span> <span class="nf">flow_matching_forward</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="sh">"""</span><span class="s">Flow matching forward (linear interpolation)</span><span class="sh">"""</span>
+    <span class="n">eps</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">randn_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">alpha_t</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">t</span>
+    <span class="n">sigma_t</span> <span class="o">=</span> <span class="n">t</span>
+    <span class="n">z_t</span> <span class="o">=</span> <span class="n">alpha_t</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">sigma_t</span> <span class="o">*</span> <span class="n">eps</span>
+    <span class="k">return</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">eps</span>
+
+<span class="c1"># Both are equivalent with alpha_t = 1-t, sigma_t = t
+</span></code></pre></div></div>
+
+<h2 id="practical-implications">Practical Implications</h2>
+
+<h3 id="what-flow-matching-brings">What Flow Matching Brings</h3>
+
+<ol>
+  <li><strong>Network output</strong>: Flow matching proposes a vector field parametrization that may affect training dynamics</li>
+  <li><strong>Simple noise schedule</strong>: Uses $\alpha_t = 1-t$ and $\sigma_t = t$, with the same update rule as DDIM</li>
+</ol>
+
+<h3 id="mix-and-match">Mix and Match</h3>
+
+<p>After training a flow matching model, you can use:</p>
+<ul>
+  <li><strong>Deterministic sampling</strong> (standard flow ODE)</li>
+  <li><strong>Stochastic sampling</strong> (add noise during sampling, like DDPM)</li>
+</ul>
+
+<p>This flexibility comes from the equivalence between the two frameworks.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>The equivalence between diffusion models and Gaussian flow matching allows practitioners to:</p>
+
+<ul>
+  <li>Use techniques from both frameworks interchangeably</li>
+  <li>Choose the most intuitive formulation for their specific application</li>
+  <li>Combine stochastic and deterministic sampling methods</li>
+</ul>
+
+<p>For more details, see the excellent blog post at <a href="https://diffusionflow.github.io/">Diffusion Meets Flow Matching</a>.</p>
+
+<hr />
+
+<p><em>This post demonstrates the distill-style blog template. The content is adapted from the original blog post by Google DeepMind researchers.</em></p>
+
+
+    </article>
+    
+    <!-- Bibliography (if provided) -->
+    
+    
+    <!-- Footer -->
+    <footer class="distill-footer">
+      <div class="footer-content">
+        <p>
+          <a href="/">Yichen Sheng</a> · 
+          <a href="mailto:sheng30@purdue.edu">Contact</a>
+        </p>
+      </div>
+    </footer>
+  </div>
+  
+  <!-- Generate TOC from headings -->
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const article = document.querySelector('.distill-article');
+      const tocContent = document.getElementById('toc-content');
+      const headings = article.querySelectorAll('h2, h3');
+      
+      if (headings.length > 0) {
+        const toc = document.createElement('ul');
+        headings.forEach((heading, index) => {
+          const id = heading.id || 'section-' + index;
+          heading.id = id;
+          
+          const li = document.createElement('li');
+          li.className = heading.tagName.toLowerCase();
+          const a = document.createElement('a');
+          a.href = '#' + id;
+          a.textContent = heading.textContent;
+          li.appendChild(a);
+          toc.appendChild(li);
+        });
+        tocContent.appendChild(toc);
+      }
+    });
+  </script>
+  
+  
+  <!-- Smooth scroll for anchor links -->
+  <script>
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
+
